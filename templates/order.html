@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Order</title>
+
+    <style>
+      .default-table-wrapper {
+        overflow-x: auto;
+        width: 100%;
+      }
+
+      .default-table {
+        margin: 1rem 0;
+        min-width: 1500px;
+        border: 1px solid #000;
+        border-collapse: collapse;
+      }
+
+      td,
+      th {
+        padding: 1rem;
+        border: 1px solid #000;
+      }
+
+      th {
+        background-color: #eee;
+      }
+
+      .image-wrapper {
+        width: 150px;
+        height: auto;
+      }
+
+      .image-wrapper img {
+        object-fit: contain;
+        object-position: center;
+        width: 100%;
+        height: 100%;
+      }
+    </style>
+  </head>
+
+  <body>
+    <h1>Order from turkmencarpets.kz [<%= data.id %>]</h1>
+
+    <p>
+      <strong>Date</strong>: <%= new Date(data.createdAt).toLocaleDateString()
+      %>
+    </p>
+    <p><strong>First name</strong>: <%= data.firstName %></p>
+    <p><strong>Last name</strong>: <%= data.lastName %></p>
+    <p><strong>Email</strong>: <%= data.email %></p>
+    <p><strong>Phone number</strong>: <%= data.phoneNumber %></p>
+    <p><strong>Country</strong>: <%= data.country %></p>
+    <p><strong>City</strong>: <%= data.city %></p>
+    <p><strong>Address</strong>: <%= data.address %></p>
+    <p><strong>Payment type</strong>: <%= data.paymentType %></p>
+    <p><strong>Delivery type</strong>: <%= data.deliveryType %></p>
+    <p><strong>Comment</strong>: <%= data.comment %></p>
+
+    <p><strong>Carpets:</strong></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Id</th>
+          <th>Date</th>
+          <th>Name</th>
+          <th>Description</th>
+          <th>Material</th>
+          <th>Colors</th>
+          <th>Sizes</th>
+          <th>Images</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <% for (let i = 0; i < data.carpets.length; i++) { %>
+        <tr>
+          <td><%= data.carpets[i].id %></td>
+          <td>
+            <%= new Date(data.carpets[i].createdAt).toLocaleDateString() %>
+          </td>
+          <td><%= data.carpets[i].name %></td>
+          <td><%= data.carpets[i].description %></td>
+          <td><%= data.carpets[i].material %></td>
+          <td>
+            <% for(let j = 0; j < data.carpets[i].colors.length; j++) { %>
+            <span><%= data.carpets[i].colors[j].name %></span>
+            <% } %>
+          </td>
+          <td>
+            <% for (let j = 0; j < data.carpets[i].sizes.length; j++) { %>
+            <span>
+              <%= data.carpets[i].sizes[j].width %> x <%=
+              data.carpets[i].sizes[j].height %> sm
+            </span>
+            <% } %>
+          </td>
+          <td>
+            <% for (let j = 0; j < data.carpets[i].images.length; j++) { %>
+            <div class="image-wrapper">
+              <img src="cid:image-<%= i %>" alt="" />
+            </div>
+            <% } %>
+          </td>
+        </tr>
+        <% } %>
+      </tbody>
+    </table>
+  </body>
+</html>
