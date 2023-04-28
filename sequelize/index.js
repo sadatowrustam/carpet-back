@@ -3,12 +3,11 @@ require("dotenv").config({
 });
 
 const Sequelize = require("sequelize");
-
-const DATABASE_NAME = process.env.DATABASE_NAME;
-const DATABASE_HOST = process.env.DATASASE_HOST;
-const DATABASE_USER = process.env.DATABASE_USER;
-const DATABASE_USER_PASS = process.env.DATABASE_USER_PASS;
-
+console.log("men seqyeku",__dirname)
+const DATABASE_NAME = process.env.DATABASE_NAME || "carpet";
+const DATABASE_HOST = process.env.DATASASE_HOST || "localhost";
+const DATABASE_USER = process.env.DATABASE_USER || "postgres";
+const DATABASE_USER_PASS = process.env.DATABASE_USER_PASS || "kuwat2009";
 const sequelize = new Sequelize(
   DATABASE_NAME,
   DATABASE_USER,
@@ -18,7 +17,6 @@ const sequelize = new Sequelize(
     dialect: "postgres",
   }
 );
-
 const fs = require("fs");
 const modelsPath = `${__dirname}/models`;
 const modelDefiners = fs.readdirSync(modelsPath);

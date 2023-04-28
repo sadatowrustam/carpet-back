@@ -1,7 +1,8 @@
 require("dotenv").config({
-  path: "../config/config.env",
-});
+  path:"../config/config.env"
 
+})
+console.log(process.env)
 const axios = require("axios");
 axios.defaults.baseURL = process.env.HOST + ":" + process.env.PORT;
 
