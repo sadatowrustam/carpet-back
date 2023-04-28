@@ -30,8 +30,8 @@ const addDefaultSuperAdmin = async () => {
     const { Admin } = models;
 
     const password = await bcrypt.hash(
-      process.env.SUPERADMIN_PASSWORD,
-      parseInt(process.env.BCRYPT_SALT_ROUNDS)
+      process.env.SUPERADMIN_PASSWORD || "admin",
+      parseInt(process.env.BCRYPT_SALT_ROUNDS || 10)
     );
 
     let admin=await Admin.create({
