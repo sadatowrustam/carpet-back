@@ -14,7 +14,6 @@ const {
 } = models;
 
 const catchAsync = require("../../utils/catchAsync");
-const response = require("../../utils/response");
 
 const returnSizesWithDiscountPrices = (sizes) => {
   sizes = sizes.map((size) => {
@@ -54,7 +53,7 @@ const returnCarpetById = async (id, res) => {
   });
 
   if (!carpet) {
-    response(res, {
+    res.send({
       code: 404,
       status: "Not found",
       message: `Couldn't find carpet with id ${id}`,
@@ -232,7 +231,7 @@ module.exports = {
       carpet.sizes = returnSizesWithDiscountPrices(carpet.sizes);
     });
 
-    response(res, {
+    res.send({
       status: "success",
       code: 200,
       dataName: "data",
@@ -303,7 +302,7 @@ module.exports = {
       where: { id: newCarpet.id },
     });
 
-    response(res, {
+    res.send({
       status: "success",
       code: 200,
       dataName: "carpet",
@@ -320,7 +319,7 @@ module.exports = {
 
     carpet = await parseCarpetContents(carpet);
     carpet.sizes = returnSizesWithDiscountPrices(carpet.sizes);
-    response(res, {
+    res.send({
       code: 200,
       status: "success",
       dataName: "carpet",
@@ -406,7 +405,7 @@ module.exports = {
       });
     }
 
-    response(res, {
+    res.send({
       status: "success",
       code: 200,
       message: `Successfully changed carpet with id ${id}`,
@@ -424,7 +423,7 @@ module.exports = {
       },
     });
 
-    response(res, {
+    res.send({
       code: 200,
       status: "success",
       message: `Deleted carpet with id ${id}`,

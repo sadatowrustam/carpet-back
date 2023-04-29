@@ -1,22 +1,22 @@
 const { models } = require("../../sequelize");
+const AppError = require("../../utils/appError");
 const { Color } = models;
 
 const catchAsync = require("../../utils/catchAsync");
-const response = require("../../utils/response");
 
 const { validateColor } = require("../../utils/validate");
 
 module.exports = {
-  createColor: catchAsync(async (req, res) => {
+  createColor: catchAsync(async (req, res,next) => {
     let { name, hex } = req.body;
 
     name = JSON.stringify(name);
 
-    await validateColor(name, hex);
+    await validateColor(name, hex,next);
 
     const color = await Color.create({ name, hex });
 
-    response(res, {
+    res.send({
       status: "success",
       code: 200,
       dataName: "color",
@@ -28,14 +28,29 @@ module.exports = {
   getColors: catchAsync(async (req, res) => {
     const colors = await Color.findAll();
 
-    response(res, {
+    res.send({
       status: "success",
       code: 200,
       dataName: "colors",
       data: colors,
     });
   }),
+  getColor: catchAsync(async (req, res) => {
+    const id = req.params.id;
 
+    const color = await Color.findOne({ where: { id } });
+
+    if (!color) {
+      return next(new AppError("Color not found",404))
+    }
+
+
+    res.send({
+      status: "success",
+      code: 200,
+      color,
+    });
+  }),
   changeColor: catchAsync(async (req, res) => {
     const id = req.params.id;
 
@@ -51,7 +66,7 @@ module.exports = {
 
     await Color.update({ name, hex }, { where: { id } });
 
-    response(res, {
+    res.send({
       status: "success",
       code: 200,
       dataName: "updatedColor",
@@ -70,7 +85,7 @@ module.exports = {
     });
 
     if (!color) {
-      response(res, {
+     return res.send({
         code: 404,
         status: "Not found",
         message: `Couldn't find a color with id ${id}`,
@@ -83,11 +98,9 @@ module.exports = {
       },
     });
 
-    response(res, {
+    return res.send({
       code: 200,
       status: "success",
-      dataName: "colorId",
-      data: id,
       message: `Successfully deleted color with id ${id}`,
     });
   }),

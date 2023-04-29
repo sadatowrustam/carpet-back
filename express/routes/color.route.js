@@ -8,11 +8,13 @@ const {
   getColors,
   changeColor,
   deleteColor,
+  getColor,
 } = require("../controllers/color.controller");
 
 router.post("/", adminMiddleware, createColor);
 router.get("/", getColors);
+router.get("/:id",getColor)
 router.patch("/:id", adminMiddleware, changeColor);
-router.delete("/:id", adminMiddleware, deleteColor);
+router.post("/delete/:id", adminMiddleware, deleteColor);
 
 module.exports = router;

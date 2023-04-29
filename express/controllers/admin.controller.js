@@ -2,7 +2,6 @@ const { models } = require("../../sequelize");
 const { Admin, AdminToken } = models;
 
 const catchAsync = require("../../utils/catchAsync");
-const response = require("../../utils/response");
 const { validateAdmin } = require("../../utils/validate");
 
 const jwt = require("jsonwebtoken");
@@ -22,24 +21,24 @@ const createAdminToken = async (payload) => {
 
 const updateAdminTokens = async (admin) => {
   const id = await machineId();
-
-  const tokens = admin.adminTokens;
+  console.log("update token",id)
+  // const tokens = admin.adminTokens;
   const token = await createAdminToken({ username: admin.username });
 
-  const sameMachineToken = tokens.find((token) => token.machineId === id);
+  // const sameMachineToken = tokens.find((token) => token.machineId === id);
 
-  if (sameMachineToken) {
-    await AdminToken.update(
-      { token },
-      { where: { machineId: sameMachineToken.machineId } }
-    );
-  } else {
-    await AdminToken.create({
-      token,
-      machineId: id,
-      adminId: admin.id,
-    });
-  }
+  // if (sameMachineToken) {
+  //   await AdminToken.update(
+  //     { token },
+  //     { where: { machineId: sameMachineToken.machineId } }
+  //   );
+  // } else {
+  //   await AdminToken.create({
+  //     token,
+  //     machineId: id,
+  //     adminId: admin.id,
+  //   });
+  // }
 
   return token;
 };
@@ -60,7 +59,7 @@ module.exports = {
       offset,
     });
 
-    response(res, {
+    res.send({
       status: "success",
       code: 200,
       dataName: "data",
@@ -90,7 +89,7 @@ module.exports = {
       permissions,
     });
 
-    response(res, {
+    res.send({
       status: "success",
       code: 200,
       dataName: "moderator",
@@ -108,7 +107,7 @@ module.exports = {
       throw new Error(`Couldn't find moderator with id ${id}`);
     }
 
-    response(res, {
+    res.send({
       status: "success",
       code: 200,
       dataName: "moderator",
@@ -142,7 +141,7 @@ module.exports = {
       { where: { id } }
     );
 
-    response(res, {
+    res.send( {
       status: "success",
       code: 200,
       message: "Moderator updated successfully",
@@ -167,7 +166,7 @@ module.exports = {
 
     if (!admin) {
       console.log(170)
-      response(res, {
+      res.send({
         code: 401,
         message: "Username or password is invalid",
       });
@@ -177,7 +176,7 @@ module.exports = {
 
     if (!passwordIsValid) {
       console.log(180)
-      response(res, {
+      res.send({
         code: 401,
         message: "Username or password is invalid",
       });
@@ -194,7 +193,7 @@ module.exports = {
       },
     });
 
-    response(res, {
+    res.send({
       code: 200,
       dataName: "data",
       data: {
@@ -215,7 +214,7 @@ module.exports = {
     });
 
     if (!admin) {
-      response(res, {
+      res.send({
         code: 404,
         status: "Not found",
         message: `Couldn't find an admin with id ${id}`,
@@ -228,7 +227,7 @@ module.exports = {
       },
     });
 
-    response(res, {
+    res.send({
       code: 200,
       status: "success",
       dataName: "adminId",

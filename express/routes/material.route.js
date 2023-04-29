@@ -8,11 +8,13 @@ const {
   createMaterial,
   changeMaterial,
   deleteMaterial,
+  getMaterial,
 } = require("../controllers/material.controller");
 
 router.get("/", getMaterials);
+router.get("/:id",getMaterial)
 router.post("/", adminMiddleware, createMaterial);
 router.patch("/:id", adminMiddleware, changeMaterial);
-router.delete("/:id", adminMiddleware, deleteMaterial);
+router.post("/delete/:id", adminMiddleware, deleteMaterial);
 
 module.exports = router;

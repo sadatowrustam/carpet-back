@@ -35,7 +35,7 @@ const addDefaultSuperAdmin = async () => {
     );
 
     let admin=await Admin.create({
-      username: process.env.SUPERADMIN_USERNAME,
+      username: process.env.SUPERADMIN_USERNAME || "admin",
       password,
       role: "superAdmin",
     });

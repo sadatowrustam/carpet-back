@@ -1,7 +1,5 @@
 const { models } = require("../../sequelize");
 const { Admin } = models;
-
-const response = require("../../utils/response");
 const catchAsync = require("../../utils/catchAsync");
 
 const jwt = require("jsonwebtoken");
@@ -12,7 +10,7 @@ module.exports = {
     const token = authHeader && authHeader.split(" ")[1];
 
     if (!token) {
-      response(res, {
+      res.send({
         code: 401,
         message: "Unauthorized",
       });
@@ -28,7 +26,7 @@ module.exports = {
       });
 
       if (!adminInDatabase) {
-        response(res, {
+        res.send({
           status: "Unauthorized",
           code: 401,
           message: "This account has been deleted",
@@ -39,7 +37,7 @@ module.exports = {
       req.admin = { username: admin.username };
       next();
     } else
-      response(res, {
+      res.send({
         code: 401,
         message: "Token has expired, login again",
       });

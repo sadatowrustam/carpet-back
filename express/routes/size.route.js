@@ -8,11 +8,13 @@ const {
   getSizes,
   changeSize,
   deleteSize,
+  getSize
 } = require("../controllers/size.controller");
 
 router.post("/", adminMiddleware, createSize);
 router.get("/", getSizes);
+router.get("/:id",getSize)
 router.patch("/:id", adminMiddleware, changeSize);
-router.delete("/:id", adminMiddleware, deleteSize);
+router.post("/delete/:id", adminMiddleware, deleteSize);
 
 module.exports = router;

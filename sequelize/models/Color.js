@@ -10,22 +10,14 @@ module.exports = (sequelize) => {
         type: DataTypes.STRING,
         allowNull: false,
         unique: true,
+        get: function () {
+          return JSON.parse(this.getDataValue("name"));
+        },
       },
       hex: {
         type: DataTypes.STRING,
         allowNull: false,
         unique: true,
-        validate: {
-          isHEXFormat(value) {
-            const HEXRegex = new RegExp(/^#[0-9a-f]{3,6}$/i);
-
-            if (!value.match(HEXRegex)) {
-              throw new Error(
-                "Color value must be in hexadecimal format (#xxxxxx) or (#xxx)"
-              );
-            }
-          },
-        },
       },
     },
     {

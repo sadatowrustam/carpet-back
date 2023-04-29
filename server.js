@@ -11,7 +11,7 @@ app.use(cors({
 }));
 
 const { morgan, morganOptions } = require(`./utils/loggers/morgan-logger`);
-app.use(morgan(morganOptions));
+app.use(require("morgan")("dev"));
 
 const logger = require(`./utils/loggers/winston-logger`);
 
@@ -40,18 +40,6 @@ app.use("/gallery-images", require("./express/routes/gallery-images.route"));
 app.use("/blog-videos", require("./express/routes/blog-video.route"));
 app.use("/dashboard", require("./express/routes/dashboard.route"));
 
-const catchAsync = require("./utils/catchAsync");
-const response = require("./utils/response");
-
-app.use(
-  catchAsync((req, res) => {
-    response(res, {
-      status: "error",
-      code: 404,
-      message: "Could not find requested resource",
-    });
-  })
-);
 
 const sequelize = require("./sequelize");
 const connectToDatabase = async () => {

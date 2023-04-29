@@ -13,6 +13,7 @@ module.exports = (sequelize) => {
       material: {
         type: DataTypes.STRING,
         allowNull: false,
+
       },
       description: {
         type: DataTypes.STRING,

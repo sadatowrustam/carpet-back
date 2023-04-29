@@ -1,62 +1,32 @@
 const { models } = require("../../sequelize");
 const { Material } = models;
-
+const AppError=require(".././../utils/appError")
 const catchAsync = require("../../utils/catchAsync");
-const response = require("../../utils/response");
 
 const { validateMaterial } = require("../../utils/validate");
 
 module.exports = {
-  createMaterial: catchAsync(async (req, res) => {
-    const name = JSON.stringify(req.body.name);
-
-    await validateMaterial(name);
+  createMaterial: catchAsync(async (req, res,next) => {
+    const name = JSON.stringify(req.body);
+    await validateMaterial(name,next);
 
     const material = await Material.create({ name });
-
-    response(res, {
+    res.send({
       status: "success",
-      code: 200,
-      dataName: "material",
+      code: 201,
       data: material,
-      message: `Successfully created material with name: ${name}`,
     });
   }),
 
-  getMaterials: catchAsync(async (req, res) => {
+  getMaterials: catchAsync(async (req, res,next) => {
     const materials = await Material.findAll();
-
-    response(res, {
+    return res.send({
       status: "success",
       code: 200,
-      dataName: "materials",
       data: materials,
     });
   }),
-
-  changeMaterial: catchAsync(async (req, res) => {
-    const { id } = req.params;
-
-    const material = await Material.findOne({ where: { id } });
-
-    if (!material) {
-      throw new Error(`Couldn't find material with id ${id}`);
-    }
-
-    const { name } = req.body;
-
-    await validateMaterial(name);
-
-    await Material.update({ name }, { where: { id } });
-
-    response(res, {
-      status: "success",
-      code: 200,
-      message: `Successfully change material with id ${id}`,
-    });
-  }),
-
-  deleteMaterial: catchAsync(async (req, res) => {
+  getMaterial: catchAsync(async (req, res,next) => {
     const { id } = req.params;
 
     const material = await Material.findOne({
@@ -64,14 +34,44 @@ module.exports = {
         id,
       },
     });
+    if(!material) return next(new AppError("Material not found",404))
+    return res.send({
+      code: 200,
+      status: "success",
+      material
+    });
+  }),
+  changeMaterial: catchAsync(async (req, res,next) => {
+    const { id } = req.params;
+
+    const material = await Material.findOne({ where: { id } });
 
     if (!material) {
-      response(res, {
-        code: 404,
-        status: "Not found",
-        message: `Couldn't find a material with id ${id}`,
-      });
+      if(!material) return next(new AppError("Material not found",404))
+
     }
+    const name = JSON.stringify(req.body);
+    await validateMaterial(name);
+
+    await Material.update({ name }, { where: { id } });
+
+    return res.send({
+      status: "success",
+      code: 200,
+      message: `Successfully change material with id ${id}`,
+    });
+  }),
+
+  deleteMaterial: catchAsync(async (req, res,next) => {
+    const { id } = req.params;
+
+    const material = await Material.findOne({
+      where: {
+        id,
+      },
+    });
+    if(!material) return next(new AppError("Material not found",404))
+
 
     await Material.destroy({
       where: {
@@ -79,7 +79,7 @@ module.exports = {
       },
     });
 
-    response(res, {
+    return res.send({
       code: 200,
       status: "success",
       message: `Successfully deleted size with id ${id}`,

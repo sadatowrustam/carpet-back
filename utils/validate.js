@@ -8,7 +8,7 @@ const {
 
 const { models } = require("../sequelize");
 const { Size, Color, Material } = models;
-
+const AppError=require("./appError")
 module.exports = {
   validateAdmin: (username, password) => {
     if (!username) {
@@ -32,52 +32,51 @@ module.exports = {
     }
   },
 
-  validateColor: async (name, hex) => {
+  validateColor: async (name, hex,next) => {
     const HEXRegex = new RegExp(/^#[0-9a-f]{3,6}$/i);
 
     if (!name || isEmpty(name)) {
-      throw new Error("Color cannot be without name");
+      return next(new AppError("Name is required",400))
     }
 
     if (!hex || isEmpty(hex)) {
-      throw new Error("Color cannot be without code");
+      return next(new AppError("Hex is required",400))
     }
 
     if (!hex.match(HEXRegex)) {
-      throw new Error(
-        "Color must be in hexadecimal format (#xxxxxx) or (#xxx)"
-      );
+      return next(new AppError("Must be Hex fornat",400))
+
     }
 
     const existingColorName = await Color.findOne({ where: { name } });
     if (existingColorName) {
-      throw new Error("Color name duplicate");
+      return next(new AppError("Existing color name",400))
     }
 
     const existingColorHex = await Color.findOne({ where: { hex } });
     if (existingColorHex) {
-      throw new Error("Color hex duplicate");
+      return next(new AppError("Existing hex",400))
     }
   },
 
-  validateSize: async (width, height) => {
+  validateSize: async (width, height,next) => {
     width = width.toString();
     height = height.toString();
 
     if (!width || isEmpty(width)) {
-      throw new Error("Width is required");
+      return next(new AppError("Width is required",400))
     }
 
     if (!height || isEmpty(height)) {
-      throw new Error("Height is required");
+      return next(new AppError("Height is required",400))
     }
 
     if (!isInt(width)) {
-      throw new Error("Width value type must be integer");
+      return next(new AppError("Width value type must be integer",400))
     }
 
     if (!isInt(height)) {
-      throw new Error("Height value type must be integer");
+      return next(new AppError("Height value type must be integer",400))
     }
 
     const existingSize = await Size.findOne({
@@ -88,19 +87,20 @@ module.exports = {
     });
 
     if (existingSize) {
-      throw new Error(`Size duplicate`);
+      return next(new AppError("Existing",400))
+
     }
   },
 
-  validateMaterial: async (name) => {
+  validateMaterial: async (name,next) => {
     if (!name || isEmpty(name)) {
-      throw new Error("Material name is required");
+      return next(new AppError("Name is required"))
     }
 
     const existingMaterial = await Material.findOne({ where: { name } });
 
     if (existingMaterial) {
-      throw new Error("Duplicate material");
+      return next(new AppError("Duplicate material"))
     }
   },
 

@@ -2,7 +2,6 @@ const { models } = require("../../sequelize");
 const { Currency, CurrencyExchangeRate } = models;
 
 const catchAsync = require("../../utils/catchAsync");
-const response = require("../../utils/response");
 
 const createCurrencyExchangeRate = async (
   firstCurrencyId,
@@ -44,7 +43,7 @@ module.exports = {
   getCurrencies: catchAsync(async (req, res) => {
     const currencies = await Currency.findAll();
 
-    response(res, {
+    res({
       status: "success",
       code: 200,
       dataName: "currencies",
@@ -72,7 +71,7 @@ module.exports = {
       }
     }
 
-    response(res, {
+    res({
       code: 200,
       status: "success",
       dataName: "currency",
@@ -108,7 +107,7 @@ module.exports = {
 
     await Currency.destroy({ where: { id } });
 
-    response(res, {
+    res({
       status: "success",
       code: 200,
       message: `Successfully deleted currency with id ${id}`,
@@ -134,7 +133,7 @@ module.exports = {
 
     console.log(rates)
 
-    response(res, {
+    res({
       status: "success",
       code: 200,
       dataName: "rates",
@@ -150,7 +149,7 @@ module.exports = {
     let currencyExchangeRate = await getCurrencyExchangeRateById(id);
 
     if (!currencyExchangeRate) {
-      response(res, {
+      res({
         code: 404,
         status: "Not found",
         message: `Couldn't find rate with id ${id}`,
@@ -191,7 +190,7 @@ module.exports = {
       toCurrencyId
     );
 
-    response(res, {
+    res({
       status: "success",
       code: 200,
       dataName: "data",

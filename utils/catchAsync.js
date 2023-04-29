@@ -10,7 +10,7 @@ module.exports = (func) => {
         message: err,
         label: "error",
       });
-      response(res, { status: "error", code: 500, message: err.message });
+      res.send({ status: "error", code: 500, message: err.message });
       next();
     });
   };
