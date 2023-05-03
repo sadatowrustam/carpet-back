@@ -14,7 +14,7 @@ const BCRYPT_SALT_ROUNDS = parseInt(process.env.BCRYPT_SALT_ROUNDS);
 const createAdminToken = async (payload) => {
   const JWTExpireDate = "3 days";
 
-  return jwt.sign(payload, JWT_SECRET, {
+  return jwt.sign(payload, "rustam", {
     expiresIn: JWTExpireDate,
   });
 };
@@ -151,14 +151,9 @@ module.exports = {
   login: catchAsync(async (req, res) => {
     const { username, password } = req.body;
 
-    if (!username) {
+    if (!username || !password) {
       throw new Error("Username is required");
     }
-
-    if (!password) {
-      throw new Error("Password is required");
-    }
-
     let admin = await Admin.findOne({
       where: { username },
       include: "adminTokens",
@@ -166,7 +161,7 @@ module.exports = {
 
     if (!admin) {
       console.log(170)
-      res.send({
+      return res.send({
         code: 401,
         message: "Username or password is invalid",
       });
@@ -176,7 +171,7 @@ module.exports = {
 
     if (!passwordIsValid) {
       console.log(180)
-      res.send({
+      return res.send({
         code: 401,
         message: "Username or password is invalid",
       });

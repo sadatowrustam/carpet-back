@@ -4,15 +4,13 @@ require("dotenv").config({
 
 const express = require("express");
 const app = express();
-
+const AppError=require("./utils/appError")
 const { cors, corsOptions } = require("./utils/cors");
 app.use(cors({
   origin:"*"
 }));
-
-const { morgan, morganOptions } = require(`./utils/loggers/morgan-logger`);
 app.use(require("morgan")("dev"));
-
+app.use(require("express-fileupload")())
 const logger = require(`./utils/loggers/winston-logger`);
 
 app.use(express.json());
@@ -36,26 +34,20 @@ app.use("/orders", require("./express/routes/order.route"));
 app.use("/requests", require("./express/routes/request.route"));
 app.use("/videos", require("./express/routes/video.route"));
 app.use("/banners", require("./express/routes/banner.route"));
-app.use("/gallery-images", require("./express/routes/gallery-images.route"));
+app.use("/gallery", require("./express/routes/gallery-images.route"));
 app.use("/blog-videos", require("./express/routes/blog-video.route"));
 app.use("/dashboard", require("./express/routes/dashboard.route"));
 
-
+app.use(require("./express/controllers/errorController"))
+app.all('*', (req, res, next) => {
+  next(new AppError(`Can't find ${req.originalUrl} on this server`, 404));
+});
 const sequelize = require("./sequelize");
 const connectToDatabase = async () => {
   try {
     await sequelize.authenticate();
-    logger.log({
-      level: "info",
-      message: "Connected to database",
-      label: "success",
-    });
   } catch (err) {
-    logger.log({
-      level: "error",
-      message: `Error connection: ${err}`,
-      label: "error",
-    });
+
   }
 };
 

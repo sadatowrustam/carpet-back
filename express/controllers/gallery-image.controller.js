@@ -1,34 +1,30 @@
 const { models } = require("../../sequelize");
 const { GalleryImage, Image } = models;
-
+const sharp=require("sharp")
+const {v4}=require("uuid")
 const catchAsync = require("../../utils/catchAsync");
-const response = require("../../utils/response");
 
 module.exports = {
   createGalleryImage: catchAsync(async (req, res) => {
-    const { title } = req.body;
-    const image = req.image;
-    const imageFile = req.file;
-
-    if (!title) {
-      throw new Error("Title is required");
-    }
-    if (!image) {
-      throw new Error("Image is required");
-    }
-
-    const galleryImage = await GalleryImage.create({ title });
-
-    await Image.create({ url: image, galleryImageId: galleryImage.id });
-
-    response(res, {
+    req.files = Object.values(req.files)
+    req.files = intoArray(req.files)
+    let imagesArray=[]    
+    const galleryImage = await GalleryImage.create({ title:"n" });
+    for (const images of req.files) {
+      const image = `${v4()}_gallery.webp`;
+      const photo = images.data
+      let buffer = await sharp(photo).webp().toBuffer()
+      await sharp(buffer).toFile(`public/images/${image}`);
+      let newImage = await Image.create({ url: image, galleryImageId: galleryImage.id })
+      imagesArray.push(newImage)
+  }
+    console.log("eyyam dyndym1")
+    return res.send({
       status: "success",
       code: 200,
-      dataName: "galleryImage",
-      data: galleryImage,
-      message: "Successfully created a gallery image",
+      data: imagesArray,
     });
-  }),
+    }),
 
   getGalleryImages: catchAsync(async (req, res) => {
     const { limit, offset } = req.query;
@@ -38,31 +34,31 @@ module.exports = {
       limit,
       offset,
     });
-
-    response(res, {
+    return res.send({
       status: "success",
       code: 200,
-      dataName: "data",
       data: {
         galleryImages: rows,
         count,
       },
     });
   }),
-
   deleteGalleryImageWithId: catchAsync(async (req, res) => {
     const { id } = req.params;
-
     const galleryImage = await GalleryImage.findOne({ where: { id } });
 
-    if (!galleryImage) throw new Error("Gallery image not found");
+    if (!galleryImage) throw new Error("Gallery image not found",404);
 
     await GalleryImage.destroy({ where: { id } });
 
-    response(res, {
+    return res.send({
       status: "success",
       code: 200,
       message: `Successfully deleted gallery image with id ${id}`,
     });
   }),
 };
+const intoArray = (file) => {
+  if (file[0].length == undefined) return file
+  else return file[0]
+}

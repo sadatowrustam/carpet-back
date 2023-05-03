@@ -9,7 +9,6 @@ const { validateColor } = require("../../utils/validate");
 module.exports = {
   createColor: catchAsync(async (req, res,next) => {
     let { name, hex } = req.body;
-
     name = JSON.stringify(name);
 
     await validateColor(name, hex,next);
@@ -19,14 +18,12 @@ module.exports = {
     res.send({
       status: "success",
       code: 200,
-      dataName: "color",
       data: color,
-      message: "Successfully created color",
     });
   }),
 
   getColors: catchAsync(async (req, res) => {
-    const colors = await Color.findAll();
+    const colors = await Color.findAll({order:[["createdAt","DESC"]]});
 
     res.send({
       status: "success",
@@ -59,17 +56,11 @@ module.exports = {
     if (!color) {
       throw new Error(`Color with id ${id} doesn't exist`);
     }
-
     const { name, hex } = req.body;
-
-    await validateColor(name, hex);
-
     await Color.update({ name, hex }, { where: { id } });
-
     res.send({
       status: "success",
       code: 200,
-      dataName: "updatedColor",
       data: color,
       message: "Successfully changed color",
     });
@@ -85,18 +76,13 @@ module.exports = {
     });
 
     if (!color) {
-     return res.send({
-        code: 404,
+     return res.status(404).send({
         status: "Not found",
         message: `Couldn't find a color with id ${id}`,
       });
     }
 
-    await Color.destroy({
-      where: {
-        id,
-      },
-    });
+    await color.destroy()
 
     return res.send({
       code: 200,

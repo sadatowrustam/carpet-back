@@ -1,7 +1,6 @@
 const { models } = require("../../sequelize");
 const { Admin } = models;
 const catchAsync = require("../../utils/catchAsync");
-
 const jwt = require("jsonwebtoken");
 
 module.exports = {
@@ -10,13 +9,12 @@ module.exports = {
     const token = authHeader && authHeader.split(" ")[1];
 
     if (!token) {
-      res.send({
+      return res.send({
         code: 401,
         message: "Unauthorized",
       });
     }
-
-    const admin = await jwt.verify(token, process.env.JWT_SECRET);
+    const admin = await jwt.verify(token, "rustam");
 
     if (admin) {
       const adminInDatabase = await Admin.findOne({
@@ -26,12 +24,12 @@ module.exports = {
       });
 
       if (!adminInDatabase) {
-        res.send({
+        console.log(30)
+        return res.send({
           status: "Unauthorized",
           code: 401,
           message: "This account has been deleted",
         });
-        return;
       }
 
       req.admin = { username: admin.username };
