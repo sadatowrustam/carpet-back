@@ -14,6 +14,7 @@ module.exports = (sequelize) => {
         type: DataTypes.UUID,
         allowNull: false,
       },
+      
       inStock: {
         type: DataTypes.BOOLEAN,
         defaultValue: true,

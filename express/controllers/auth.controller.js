@@ -8,6 +8,7 @@ module.exports = {
     const authHeader = req.headers["authorization"];
     const token = authHeader && authHeader.split(" ")[1];
 
+    console.log(11,!token)
     if (!token) {
       return res.send({
         code: 401,

@@ -106,11 +106,11 @@ module.exports = {
 
   validateOrder: (firstName, lastName, phoneNumber, email, country) => {
     if (isEmpty(firstName)) {
-      throw new Error("First name is required");
+      return next(new AppError("First name is required"))
     }
 
     if (isEmpty(lastName)) {
-      throw new Error("Last name is required");
+      return next(new AppError("Last name is required"))
     }
 
     if (isEmpty(phoneNumber)) {

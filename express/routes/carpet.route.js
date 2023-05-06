@@ -31,12 +31,9 @@ const {
   getCarpetById,
   changeCarpetById,
   deleteCarpetById,
+  createImage
 } = require("../controllers/carpet.controller");
 
-const createArrayForCarpetImages = (req, res, next) => {
-  req.images = [];
-  next();
-};
 
 const { adminMiddleware } = require("../controllers/auth.controller");
 
@@ -44,16 +41,13 @@ router.get("/", getAllCarpets);
 router.post(
   "/",
   adminMiddleware,
-  createArrayForCarpetImages,
-  upload.array("images", 10),
   createOneCarpet
 );
+router.post("/upload-image/:id",adminMiddleware,createImage)
 router.get("/:id", getCarpetById);
 router.patch(
   "/:id",
   adminMiddleware,
-  createArrayForCarpetImages,
-  upload.array("images", 10),
   changeCarpetById
 );
 router.delete("/:id", adminMiddleware, deleteCarpetById);

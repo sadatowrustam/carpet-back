@@ -71,7 +71,7 @@ module.exports = {
       }
     }
 
-    res({
+    res.send({
       code: 200,
       status: "success",
       dataName: "currency",

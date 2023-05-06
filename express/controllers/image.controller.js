@@ -11,7 +11,7 @@ module.exports = {
     const image = await Image.findOne({ where: { id } });
 
     if (!image) {
-      response(res, {
+      return res.status(404).send({
         status: "Not found",
         code: 404,
         message: `Couldn't find image with id ${id}`,
@@ -20,7 +20,7 @@ module.exports = {
 
     await Image.destroy({ where: { id } });
 
-    response(res, {
+    res.send({
       code: 200,
       status: "success",
       message: `Successfully deleted image with id ${id}`,

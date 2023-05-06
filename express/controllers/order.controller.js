@@ -25,19 +25,6 @@ module.exports = {
       deliveryType,
     } = req.body;
 
-    await validateOrder(
-      firstName,
-      lastName,
-      phoneNumber,
-      email,
-      country,
-      city,
-      address,
-      comment,
-      paymentType,
-      deliveryType
-    );
-
     const newOrder = await Order.create({
       firstName,
       lastName,

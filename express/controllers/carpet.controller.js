@@ -1,6 +1,6 @@
 const { Sequelize, Op } = require("sequelize");
-
-
+const {v4}=require("uuid")
+const sharp=require("sharp")
 const { models } = require("../../sequelize");
 const {
   Carpet,
@@ -35,15 +35,6 @@ const returnPriceWithDiscount = (price, discount) => {
   return parseInt(priceWithDiscount.toFixed(2));
 };
 
-const createImagesForCarpet = async (carpetId, images, descriptions) => {
-  for (let i = 0; i < images.length; i++) {
-    await Image.create({
-      url: images[i],
-      carpetId,
-      description: descriptions[i],
-    });
-  }
-};
 
 const returnCarpetById = async (id, res) => {
   const carpet = await Carpet.findOne({
@@ -53,7 +44,7 @@ const returnCarpetById = async (id, res) => {
   });
 
   if (!carpet) {
-    res.send({
+    return res.send({
       code: 404,
       status: "Not found",
       message: `Couldn't find carpet with id ${id}`,
@@ -174,15 +165,13 @@ const returnWhereOptions = (materials, keyword) => {
 
 const parseCarpetContents = async (carpet) => {
   for (const color of carpet.colors) {
-    color.name = await JSON.parse(color.name);
+    // color.name = await JSON.parse(color.name);
   }
-
   carpet.material = await JSON.parse(carpet.material);
 
   carpet.content = await JSON.parse(carpet.content);
 
   carpet.description = await JSON.parse(carpet.description);
-
   carpet.preview = carpet.images[0].url;
 
   return carpet;
@@ -221,17 +210,12 @@ module.exports = {
         }
       });
     }
-    rows.map(async (carpet) => {
-      carpet = await parseCarpetContents(carpet);
-
-      return carpet;
-    });
 
     rows.map((carpet) => {
       carpet.sizes = returnSizesWithDiscountPrices(carpet.sizes);
     });
 
-    res.send({
+    return res.send({
       status: "success",
       code: 200,
       dataName: "data",
@@ -246,32 +230,34 @@ module.exports = {
     let {
       name,
       description,
-      colorIds,
       sizes,
       material,
       price,
       content,
-      imageDescriptions,
     } = req.body;
+    console.log(req.body)
     let sizeIds = [];
     if (!sizes) throw new Error("Please provide size(s) of carpet");
     for (let i = 0; i < sizes.length; i++) {
-      sizes[i] = JSON.parse(sizes[i]);
+      // sizes[i] = JSON.parse(sizes[i]);
       sizeIds.push(sizes[i].id);
     }
-
+    let colorIds=[]
+    for(const onecolor of req.body.color){
+      colorIds.push(onecolor.id)
+    }
+    description=JSON.stringify(description)
+    content=JSON.stringify(content)
+    name = JSON.stringify(name)
     const defaultCurrency = await Currency.findOne({ where: { code: "USD" } });
-
     const newCarpet = await Carpet.create({
       name,
       description,
-      material,
+      material:material[0].name.ru,
       price,
       content,
       currencyId: defaultCurrency.id,
-      preview: req.images[0],
     });
-    await createImagesForCarpet(newCarpet.id, req.images, imageDescriptions);
     const colors = await Color.findAll({
       where: { id: colorIds },
       attributes: ["id"],
@@ -302,10 +288,9 @@ module.exports = {
       where: { id: newCarpet.id },
     });
 
-    res.send({
+    return res.send({
       status: "success",
       code: 200,
-      dataName: "carpet",
       data: carpet,
       message: "Successfully created a carpet",
     });
@@ -319,14 +304,31 @@ module.exports = {
 
     carpet = await parseCarpetContents(carpet);
     carpet.sizes = returnSizesWithDiscountPrices(carpet.sizes);
-    res.send({
+    return res.send({
       code: 200,
       status: "success",
       dataName: "carpet",
       data: carpet,
     });
   }),
-  
+  createImage: catchAsync(async (req, res) => {
+    req.files = Object.values(req.files)
+    req.files = intoArray(req.files)
+    let imagesArray=[]    
+    for (const images of req.files) {
+      const image = `${v4()}_carpet.webp`;
+      const photo = images.data
+      let buffer = await sharp(photo).webp().toBuffer()
+      await sharp(buffer).toFile(`public/images/${image}`);
+      let newImage = await Image.create({ url: image, carpetId: req.params.id })
+      imagesArray.push(newImage)
+  }
+    return res.send({
+      status: "success",
+      code: 200,
+      data: imagesArray,
+    });
+    }),
   changeCarpetById: catchAsync(async (req, res) => {
     const id = req.params.id;
 
@@ -345,8 +347,6 @@ module.exports = {
       { name, description, material, price, content, preview: req.images[0] },
       { where: { id } }
     );
-
-    await createImagesForCarpet(id, req.images, imageDescriptions);
 
     const carpet = await Carpet.findOne({ where: { id } });
 
@@ -405,7 +405,7 @@ module.exports = {
       });
     }
 
-    res.send({
+    return res.send({
       status: "success",
       code: 200,
       message: `Successfully changed carpet with id ${id}`,
@@ -423,10 +423,14 @@ module.exports = {
       },
     });
 
-    res.send({
+    return res.send({
       code: 200,
       status: "success",
       message: `Deleted carpet with id ${id}`,
     });
   }),
 };
+const intoArray = (file) => {
+  if (file[0].length == undefined) return file
+  else return file[0]
+}

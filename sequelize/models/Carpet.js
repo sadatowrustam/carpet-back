@@ -9,22 +9,34 @@ module.exports = (sequelize) => {
       name: {
         type: DataTypes.STRING,
         allowNull: false,
+        get(){
+          return JSON.parse(this.getDataValue("name"));
+        }
       },
       material: {
         type: DataTypes.STRING,
         allowNull: false,
+        get(){
+          return JSON.parse(this.getDataValue("material"));
+        }
 
       },
       description: {
-        type: DataTypes.STRING,
+        type: DataTypes.TEXT,
         allowNull: false,
+        get(){
+          return JSON.parse(this.getDataValue("description"));
+        }
       },
       content: {
-        type: DataTypes.STRING(2200),
+        type: DataTypes.TEXT,
         allowNull: false,
+        get(){
+          return JSON.parse(this.getDataValue("content"));
+        }
       },
       preview: {
-        type: DataTypes.STRING,
+        type: DataTypes.TEXT,
       },
     },
     {
