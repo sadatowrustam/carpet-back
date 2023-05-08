@@ -1,4 +1,4 @@
-const { Sequelize, Op } = require("sequelize");
+const { Sequelize, Op, col } = require("sequelize");
 const {v4}=require("uuid")
 const sharp=require("sharp")
 const { models } = require("../../sequelize");
@@ -235,7 +235,6 @@ module.exports = {
       price,
       content,
     } = req.body;
-    console.log(req.body)
     let sizeIds = [];
     if (!sizes) throw new Error("Please provide size(s) of carpet");
     for (let i = 0; i < sizes.length; i++) {
@@ -249,11 +248,13 @@ module.exports = {
     description=JSON.stringify(description)
     content=JSON.stringify(content)
     name = JSON.stringify(name)
+    material=JSON.stringify(material)
+
     const defaultCurrency = await Currency.findOne({ where: { code: "USD" } });
     const newCarpet = await Carpet.create({
       name,
       description,
-      material:material[0].name.ru,
+      material,
       price,
       content,
       currencyId: defaultCurrency.id,
@@ -274,13 +275,13 @@ module.exports = {
         colorId: colors[i].id,
       });
     }
-
+    console.log(sizes[0])
     for (let i = 0; i < sizesFromDatabase.length; i++) {
       await CarpetSize.create({
         carpetId: newCarpet.id,
         sizeId: sizesFromDatabase[i].id,
         price: sizes[i].price,
-        inStock: sizes[i].inStock,
+        inStock: sizes[i].instock,
         discount: sizes[i].discount,
       });
     }
@@ -302,8 +303,8 @@ module.exports = {
 
     let carpet = await returnCarpetById(id, res);
 
-    carpet = await parseCarpetContents(carpet);
-    carpet.sizes = returnSizesWithDiscountPrices(carpet.sizes);
+    // carpet = await parseCarpetContents(carpet);
+    // carpet.sizes = returnSizesWithDiscountPrices(carpet.sizes);
     return res.send({
       code: 200,
       status: "success",
@@ -335,49 +336,41 @@ module.exports = {
     let {
       name,
       description,
-      colorIds,
       sizes,
       material,
       price,
       content,
-      imageDescriptions,
+      colors
     } = req.body;
-
+    console.log(345,sizes)
+    description=JSON.stringify(description)
+    content=JSON.stringify(content)
+    name = JSON.stringify(name)
+    material=JSON.stringify(material)
     await Carpet.update(
-      { name, description, material, price, content, preview: req.images[0] },
+      { name, description, material, price, content },
       { where: { id } }
     );
 
     const carpet = await Carpet.findOne({ where: { id } });
-
-    let deleteColorIds = [];
-    for (let i = 0; i < carpet.colors.length; i++) {
-      deleteColorIds.push(carpet.colors[i].id);
-    }
     await CarpetColor.destroy({
       where: {
         carpetId: id,
-        colorId: deleteColorIds,
       },
     });
-
+    let colorIds=[]
     let sizeIds = [];
     for (let i = 0; i < sizes.length; i++) {
-      sizes[i] = JSON.parse(sizes[i]);
       sizeIds.push(sizes[i].id);
-    }
-
-    let deleteSizeIds = [];
-    for (let i = 0; i < carpet.sizes.length; i++) {
-      deleteSizeIds.push(carpet.sizes[i].id);
     }
     await CarpetSize.destroy({
       where: {
         carpetId: id,
-        sizeId: deleteSizeIds,
       },
     });
-
+    for(const color of colors){
+      colorIds.push(color.id)
+    }
     const colorsFromDatabase = await Color.findAll({
       where: { id: colorIds },
       attributes: ["id"],
@@ -400,7 +393,7 @@ module.exports = {
         carpetId: id,
         sizeId: sizesFromDatabase[i].id,
         price: sizes[i].price,
-        inStock: sizes[i].inStock || sizes[i].carpetSize.inStock || 0,
+        inStock: sizes[i].inStock || 0,
         discount: sizes[i].discount || 0,
       });
     }
@@ -414,7 +407,7 @@ module.exports = {
 
   deleteCarpetById: catchAsync(async (req, res) => {
     const id = req.params.id;
-
+    console.log("fdew")
     await returnCarpetById(id, res);
 
     await Carpet.destroy({

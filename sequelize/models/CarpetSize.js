@@ -17,7 +17,7 @@ module.exports = (sequelize) => {
       
       inStock: {
         type: DataTypes.BOOLEAN,
-        defaultValue: true,
+        // defaultValue: true,
       },
       price: {
         type: DataTypes.INTEGER,

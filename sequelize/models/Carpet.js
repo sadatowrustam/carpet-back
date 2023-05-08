@@ -14,7 +14,7 @@ module.exports = (sequelize) => {
         }
       },
       material: {
-        type: DataTypes.STRING,
+        type: DataTypes.TEXT,
         allowNull: false,
         get(){
           return JSON.parse(this.getDataValue("material"));

@@ -43,6 +43,7 @@ router.post(
   adminMiddleware,
   createOneCarpet
 );
+router.post("/delete/:id", adminMiddleware, deleteCarpetById);
 router.post("/upload-image/:id",adminMiddleware,createImage)
 router.get("/:id", getCarpetById);
 router.patch(
@@ -50,6 +51,5 @@ router.patch(
   adminMiddleware,
   changeCarpetById
 );
-router.delete("/:id", adminMiddleware, deleteCarpetById);
 
 module.exports = router;
