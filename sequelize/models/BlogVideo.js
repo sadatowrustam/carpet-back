@@ -9,6 +9,9 @@ module.exports = (sequelize) => {
       title: {
         type: DataTypes.STRING,
         allowNull: false,
+        get(){
+          return JSON.parse(this.getDataValue("title"));
+        }
       },
     },
     {

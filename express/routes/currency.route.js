@@ -14,7 +14,7 @@ const {
 router.get("/", getCurrencies);
 router.post("/", createCurrency);
 router.get("/rates", getRates);
-router.patch("/rates/:id", adminMiddleware, changeRate);
+router.patch("/rates", adminMiddleware, changeRate);
 router.delete("/:id", adminMiddleware, deleteCurrency);
 
 module.exports = router;

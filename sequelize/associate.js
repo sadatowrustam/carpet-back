@@ -139,6 +139,8 @@ module.exports = ({ models }) => {
   BlogVideo.hasOne(Video, {
     foreignKey: "blogVideoId",
     as: "blogVideo",
+    onDelete:"cascade"
+    
   });
 
   Video.belongsTo(BlogVideo, {

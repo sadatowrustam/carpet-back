@@ -31,7 +31,8 @@ const {
   getCarpetById,
   changeCarpetById,
   deleteCarpetById,
-  createImage
+  createImage,
+  deleteImage
 } = require("../controllers/carpet.controller");
 
 
@@ -45,6 +46,8 @@ router.post(
 );
 router.post("/delete/:id", adminMiddleware, deleteCarpetById);
 router.post("/upload-image/:id",adminMiddleware,createImage)
+router.post("/delete-image/:id",adminMiddleware,deleteImage)
+
 router.get("/:id", getCarpetById);
 router.patch(
   "/:id",

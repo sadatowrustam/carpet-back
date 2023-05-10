@@ -329,6 +329,14 @@ module.exports = {
       code: 200,
       data: imagesArray,
     });
+  }),
+  deleteImage: catchAsync(async (req, res) => {
+    const image=await Image.findOne({where:{id:req.params.id}})
+    await image.destroy()
+     return res.send({
+      status: "success",
+      code: 200,
+    });
     }),
   changeCarpetById: catchAsync(async (req, res) => {
     const id = req.params.id;

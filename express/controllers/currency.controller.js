@@ -41,12 +41,20 @@ const getRelatedCurrencyExchangeRateByIds = async (
 
 module.exports = {
   getCurrencies: catchAsync(async (req, res) => {
-    const currencies = await Currency.findAll();
+    const currencies = await Currency.findAll({include:[
+    {
+      model:CurrencyExchangeRate,
+      as:"fromCurrency"
+    },
+    {
+      model:CurrencyExchangeRate,
+      as:"fromCurrency"
+    }
+]});
 
-    res({
+    return res.send({
       status: "success",
       code: 200,
-      dataName: "currencies",
       data: currencies,
     });
   }),
@@ -131,73 +139,30 @@ module.exports = {
       attributes: ["id", "exchangeRate"],
     });
 
-    console.log(rates)
 
-    res({
+    return res.send({
       status: "success",
       code: 200,
-      dataName: "rates",
       data: rates,
     });
   }),
 
   changeRate: catchAsync(async (req, res) => {
-    const { id } = req.params;
-
-    let { exchangeRate } = req.body;
-
-    let currencyExchangeRate = await getCurrencyExchangeRateById(id);
-
-    if (!currencyExchangeRate) {
-      res({
-        code: 404,
-        status: "Not found",
-        message: `Couldn't find rate with id ${id}`,
-      });
+    for (const rates of req.body){
+      const currency=await Currency.findOne({where: {code: rates.name}})
+      await CurrencyExchangeRate.update(
+        { exchangeRate:rates.value },
+        {
+          where: {
+            fromCurrencyId:currency.id,
+          },
+        }
+      );
     }
-
-    const { fromCurrencyId, toCurrencyId } = currencyExchangeRate;
-
-    await CurrencyExchangeRate.update(
-      { exchangeRate },
-      {
-        where: {
-          id,
-        },
-      }
-    );
-
-    let relatedCurrencyExchangeRate = await getRelatedCurrencyExchangeRateByIds(
-      fromCurrencyId,
-      toCurrencyId
-    );
-
-    const relatedExchangeRate = 1 / exchangeRate;
-
-    await CurrencyExchangeRate.update(
-      { exchangeRate: relatedExchangeRate },
-      {
-        where: {
-          id: relatedCurrencyExchangeRate.id,
-        },
-      }
-    );
-
-    currencyExchangeRate = await getCurrencyExchangeRateById(id);
-
-    relatedCurrencyExchangeRate = await getRelatedCurrencyExchangeRateByIds(
-      fromCurrencyId,
-      toCurrencyId
-    );
-
-    res({
+    return res.send({
       status: "success",
       code: 200,
       dataName: "data",
-      data: {
-        rate: currencyExchangeRate.exchangeRate,
-        relatedRate: relatedCurrencyExchangeRate.exchangeRate,
-      },
       message: "Successfully changed rate",
     });
   }),

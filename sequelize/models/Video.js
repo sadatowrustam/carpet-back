@@ -11,6 +11,17 @@ module.exports = (sequelize) => {
         allowNull: false,
         unique: true,
       },
+
+    },
+    {
+      hooks:{
+        beforeDestroy(record,options){
+          fs.unlink("./public/videos/"+record.url,(err)=>{
+            if(err) console.log(err)
+          })
+          console.log("image deleted successfully")
+        }
+      }
     },
     {
       tableName: "Videos",
