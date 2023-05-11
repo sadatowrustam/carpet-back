@@ -132,6 +132,7 @@ module.exports = ({ models }) => {
 
   Video.belongsTo(Banner, {
     as: "video",
+    foreignKey:"bannerId"
   });
 
   //

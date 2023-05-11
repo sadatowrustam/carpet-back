@@ -27,12 +27,10 @@ module.exports = {
       "maryam@marusgroup.kz"
     );
 
-    response(res, {
+    return res.send({
       status: "success",
       code: 200,
-      dataName: "request",
       data: request,
-      message: "Your request has successfully sent",
     });
   }),
 
@@ -45,7 +43,7 @@ module.exports = {
       subQuery: false,
     });
 
-    response(res, {
+    return res.send({
       status: "success",
       code: 200,
       dataName: "data",
@@ -67,7 +65,7 @@ module.exports = {
 
     await Request.destroy({ where: { id } });
 
-    response(res, {
+    return res.send({
       status: "success",
       message: `Successfully deleted request with id ${id}`,
     });

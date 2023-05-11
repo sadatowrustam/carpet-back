@@ -6,7 +6,7 @@ const response = require("../../utils/response");
 
 module.exports = {
   createBlogVideo: catchAsync(async (req, res) => {
-    console.log(req.file,req.files,req.body)
+    console.log(req.body,req.files)
     req.files=Object.values(req.files)
     req.files=intoArray(req.files)
     for (let i=0; i<req.files.length; i++) {
@@ -32,20 +32,33 @@ module.exports = {
     const { id } = req.params;
 
     const blogVideo = await BlogVideo.findOne({ where: { id } });
-    req.files=Object.values(req.files)
-    req.files=intoArray(req.files)
-    console.log(req.body)
     let title=JSON.stringify({
       ru:req.body.title_ru,
       en:req.body.title_en
     })
-    const url=blogVideo.blogVideo.url
-    req.files[0].mv("./public/videos/"+url)
     await blogVideo.update({title})
+    console.log(req.files)
+    if(req.files!=null){
+      req.files=Object.values(req.files)
+      req.files=intoArray(req.files)
+      const url=blogVideo.blogVideo.url
+      req.files[0].mv("./public/videos/"+url)
+    }
     res.send({
       status: "success",
       code: 200,
       message: `Successfully deleted blog video with id ${id}`,
+    });
+  }),
+  getBlogVideoById: catchAsync(async (req, res) => {
+    const { id } = req.params;
+
+    const blogVideo = await BlogVideo.findOne({ where: { id } });
+    res.send({
+      status: "success",
+      code: 200,
+      message: `Successfully deleted blog video with id ${id}`,
+      video: blogVideo
     });
   }),
   getBlogVideos: catchAsync(async (req, res) => {
@@ -77,7 +90,7 @@ module.exports = {
 
     await BlogVideo.destroy({ where: { id } });
     await Video.destroy({where:{blogVideoId:id}})
-    res.send({
+    return res.send({
       status: "success",
       code: 200,
       message: `Successfully deleted blog video with id ${id}`,

@@ -1,40 +1,27 @@
 const express = require("express");
 const router = express.Router();
-
-const generateFileName = require("../../utils/generateFileName");
-
-const multer = require("multer");
-const storage = multer.diskStorage({
-  destination: "public/banners",
-  filename: async (req, file, cb) => {
-    const filename = await generateFileName("banner", file);
-    req.filePath = `/banners/${filename}`;
-    await cb(null, filename);
-  },
-});
-const upload = multer({ storage });
-
-const createVarForFile = (req, res, next) => {
-  req.filePath = "";
-  next();
-};
-
 const { adminMiddleware } = require("../controllers/auth.controller");
-
 const {
   createBanner,
   getBanners,
   deleteBannerById,
+  uploadImage,
+  uploadVideo,
+  editBannerById,
+  getBannerById
 } = require("../controllers/banner.controller");
 
 router.post(
   "/",
   adminMiddleware,
-  createVarForFile,
-  upload.single("file"),
   createBanner
 );
+router.post("/upload-image/:id",uploadImage)
+router.post("/upload-video/:id",uploadVideo)
+
 router.get("/", getBanners);
-router.delete("/:id", adminMiddleware, deleteBannerById);
+router.get("/:id",getBannerById)
+router.patch("/:id",editBannerById)
+router.post("/delete/:id", adminMiddleware, deleteBannerById);
 
 module.exports = router;

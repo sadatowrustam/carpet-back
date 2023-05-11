@@ -7,7 +7,8 @@ const {
   createBlogVideo,
   getBlogVideos,
   deleteBlogVideoById,
-  editBlogVideoById
+  editBlogVideoById,
+  getBlogVideoById
 } = require("../controllers/blog-video.controller");
 
 router.post(
@@ -21,6 +22,10 @@ router.patch(
   editBlogVideoById
 );
 router.get("/", getBlogVideos);
+router.get(
+  "/:id",
+  getBlogVideoById
+);
 router.post("/delete/:id", adminMiddleware, deleteBlogVideoById);
 
 module.exports = router;

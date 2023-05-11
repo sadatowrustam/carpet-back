@@ -1,65 +1,53 @@
 const { models } = require("../../sequelize");
 const { Banner, Image, Video } = models;
-
+const {v4}=require("uuid")
+const sharp=require("sharp")
 const catchAsync = require("../../utils/catchAsync");
 const response = require("../../utils/response");
-
-const getFileExtension = require("../../utils/getFileExtension");
-
 module.exports = {
   createBanner: catchAsync(async (req, res) => {
-    const { title, type } = req.body;
-
-    const file = req.file;
-    const filePath = req.filePath;
-
-    const fileExtension = getFileExtension(file.originalname);
-    const allowedExtensions = ["png", "jpg", "mp4"];
-    if (!allowedExtensions.includes(fileExtension)) {
-      throw new Error(
-        `Invalid file extension (${fileExtension}). Allowed file extensions: ${allowedExtensions}`
-      );
-    }
-
-    const imageExtensions = ["png", "jpg"];
-    if (type === "image" && !imageExtensions.includes(fileExtension)) {
-      throw new Error(
-        `File extension and type do not match (${type} -> ${fileExtension})`
-      );
-    }
-
-    const videoExtensions = ["mp4"];
-    if (type === "video" && !videoExtensions.includes(fileExtension)) {
-      throw new Error(
-        `File extension and type do not match (${type} -> ${fileExtension})`
-      );
-    }
-
-    if (!type) {
-      throw new Error("Type is required");
-    }
-    if (!file || !filePath) {
-      throw new Error("Video file is required");
-    }
-
-    const banner = await Banner.create({ title, type });
-
-    const modelRef = {
-      image: Image,
-      video: Video,
-    };
-
-    modelRef[type].create({ url: filePath, bannerId: banner.id });
-
-    response(res, {
-      status: "success",
-      code: 200,
-      dataName: "banner",
-      data: banner,
-      message: "Successfully created a banner",
-    });
+  let{ title, type } = req.body;
+  title=JSON.stringify(title)
+  const banner = await Banner.create({ title, type });
+  return res.send({
+    // status: "success",
+    code: 200,
+    banner,
+  });
   }),
-
+  uploadImage:catchAsync(async(req,res)=>{
+    const { id } = req.params;
+    req.files=Object.values(req.files)
+    req.files=intoArray(req.files)
+    for (const images of req.files) {
+      const image = `${v4()}_banners.webp`;
+      const photo = images.data
+      let buffer = await sharp(photo).webp().toBuffer()
+      await sharp(buffer).toFile(`public/banners/${image}`);
+      let newImage = await Image.create({ url: image, bannerId: id })
+  }
+  return res.send({
+    status: "success",
+    code: 200,
+  });
+  }),
+  uploadVideo:catchAsync(async(req,res)=>{
+    const id=req.params.id
+    req.files=Object.values(req.files)
+    req.files=intoArray(req.files)
+    for (let i=0; i<req.files.length; i++) {
+    const url=v4()+"_video.mp4"
+    req.files[i].mv("./public/videos/"+url)
+    const video = await Video.create({
+      url,
+      bannerId: id,
+    });
+  }
+  return res.send({
+    status:"sucess",
+    code:200
+  })
+  }),
   getBanners: catchAsync(async (req, res) => {
     const { limit, offset } = req.query;
 
@@ -67,9 +55,10 @@ module.exports = {
       limit,
       offset,
       subQuery: false,
+      order:[["createdAt", "DESC"],]
     });
 
-    response(res, {
+    return res.send({
       status: "success",
       code: 200,
       dataName: "data",
@@ -79,7 +68,30 @@ module.exports = {
       },
     });
   }),
-
+  getBannerById: catchAsync(async (req, res) => {
+    const { id } = req.params;
+    let{ title, type } = req.body;
+    title=JSON.stringify(title)
+    const banner = await Banner.findOne({ where: { id } });
+    await banner.update({title,type})
+    res.send({
+      status: "success",
+      code: 200,
+      banner
+    });
+  }),
+  editBannerById: catchAsync(async (req, res) => {
+    const { id } = req.params;
+    let{ title, type } = req.body;
+    title=JSON.stringify(title)
+    const banner = await Banner.findOne({ where: { id } });
+    await banner.update({title,type})
+    res.send({
+      status: "success",
+      code: 200,
+      banner
+    });
+  }),
   deleteBannerById: catchAsync(async (req, res) => {
     const { id } = req.params;
 
@@ -91,10 +103,13 @@ module.exports = {
 
     await Banner.destroy({ where: { id } });
 
-    response(res, {
+    res.send({
       status: "success",
       code: 200,
-      message: `Successfully deleted banner with id ${id}`,
     });
   }),
 };
+const intoArray = (file) => {
+  if (file[0].length == undefined) return file
+  else return file[0]
+}

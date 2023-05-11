@@ -7,7 +7,10 @@ module.exports = (sequelize) => {
     {
       id: uuidPrimaryKey(),
       title: {
-        type: DataTypes.STRING,
+        type: DataTypes.TEXT,
+        get(){
+          return JSON.parse(this.getDataValue("title"))
+        }
       },
       type: {
         type: DataTypes.STRING,
