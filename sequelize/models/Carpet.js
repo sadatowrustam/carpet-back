@@ -38,6 +38,10 @@ module.exports = (sequelize) => {
       preview: {
         type: DataTypes.TEXT,
       },
+      isDiscount:{
+        type:DataTypes.BOOLEAN,
+        defaultValue:false
+      }
     },
     {
       tableName: "Carpets",

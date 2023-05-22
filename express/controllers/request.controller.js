@@ -6,27 +6,33 @@ const response = require("../../utils/response");
 const sendHTMLEmail = require("../../utils/sendHTMLEmail");
 
 const { validateRequest } = require("../../utils/validate");
-
+const nodemailer=require("nodemailer")
 module.exports = {
   createRequest: catchAsync(async (req, res) => {
     const { firstName, lastName, email, message } = req.body;
 
-    await validateRequest(firstName, lastName, email, message);
-
     const request = await Request.create({
       firstName,
-      lastName,
+      lastName:"?",
       email,
       message,
     });
-
-    sendHTMLEmail(
-      "./templates/request.html",
-      request,
-      `Request [${request.id}] from turkmencarpets.kz`,
-      "maryam@marusgroup.kz"
-    );
-
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      port: 465,
+      secure: true,
+      auth: {
+          user: 'mailsendergeekspace@gmail.com',
+          pass: 'vidiruegloavrcko',
+      },
+  });
+  const mailOptions = {
+      from: 'mailsendergeekspace@gmail.com',
+      to: 'rustamsadatov0@gmail.com',
+      subject: 'Biri "Carpet" administratsiýasy bilen habarlaşmak isleýär',
+      text: `ADY: ${firstName},\nEMAIL: ${email},\n HATY: ${message}`,
+  };
+  await transporter.sendMail(mailOptions);
     return res.send({
       status: "success",
       code: 200,
@@ -53,7 +59,20 @@ module.exports = {
       },
     });
   }),
+  getOneRequest: catchAsync(async (req, res) => {
+    const { id } = req.params;
 
+    const request = await Request.findOne({ where: { id } });
+
+    if (!request) {
+      throw new Error(`Couldn't find request with id ${id}`);
+    }
+
+    return res.send({
+      status: "success",
+      request
+    });
+  }),
   deleteRequest: catchAsync(async (req, res) => {
     const { id } = req.params;
 

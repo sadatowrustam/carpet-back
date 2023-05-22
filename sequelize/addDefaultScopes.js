@@ -24,6 +24,7 @@ module.exports = ({ models }) => {
         model: Size,
         as: "sizes",
         duplicating: false,
+        order:[["createdAt","DESC"]],
         through: {
           as: "carpetSize",
           required: true,

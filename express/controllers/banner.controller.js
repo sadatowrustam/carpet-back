@@ -52,8 +52,6 @@ module.exports = {
     const { limit, offset } = req.query;
 
     const { rows, count } = await Banner.findAndCountAll({
-      limit,
-      offset,
       subQuery: false,
       order:[["createdAt", "DESC"],]
     });

@@ -2,10 +2,6 @@ const { models } = require("../../sequelize");
 const { Order, CarpetOrder, Carpet } = models;
 
 const catchAsync = require("../../utils/catchAsync");
-const response = require("../../utils/response");
-const sendHTMLEmail = require("../../utils/sendHTMLEmail");
-
-const { validateOrder } = require("../../utils/validate");
 
 module.exports = {
   createOrder: catchAsync(async (req, res) => {
@@ -47,29 +43,7 @@ module.exports = {
     }
 
     const order = await Order.findOne({ where: { id: newOrder.id } });
-    order.baseURL = fullUrl;
-
-    const attachments = [];
-
-    order.carpets.forEach((carpet) => {
-      for (let i = 0; i < carpet.images.length; i++) {
-        attachments.push({
-          filename: `image-${i}.png`,
-          path: `${fullUrl}${carpet.images[i].url}`,
-          cid: `image-${i}`,
-        });
-      }
-    });
-
-    sendHTMLEmail(
-      "./templates/order.html",
-      order,
-      `Order [${order.id}] from turkmencarpets.kz`,
-      "maryam@marusgroup.kz",
-      attachments
-    );
-
-    response(res, {
+    res.send({
       status: "success",
       code: 200,
       dataName: "order",
@@ -87,7 +61,7 @@ module.exports = {
       subQuery: false,
     });
 
-    response(res, {
+    res.send({
       status: "success",
       code: 200,
       dataName: "data",
@@ -107,7 +81,7 @@ module.exports = {
       throw new Error(`Couldn't find order with id ${id}`);
     }
 
-    response(res, {
+    res.send({
       status: "success",
       code: 200,
       dataName: "order",
@@ -133,7 +107,7 @@ module.exports = {
 
     await Order.update({ status }, { where: { id } });
 
-    response(res, {
+    res.send({
       status: "success",
       code: 200,
       message: `Successfully changed status of order with id ${id} to ${status}`,
@@ -151,7 +125,7 @@ module.exports = {
 
     await Order.destroy({ where: { id } });
 
-    response(res, {
+    res.send({
       status: "success",
       code: 200,
       message: `Successfully deleted order with id ${id}`,

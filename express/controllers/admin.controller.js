@@ -3,14 +3,11 @@ const { Admin, AdminToken } = models;
 
 const catchAsync = require("../../utils/catchAsync");
 const { validateAdmin } = require("../../utils/validate");
-
+const AppError=require("../../utils/appError");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
-
 const { machineId } = require("node-machine-id");
-const JWT_SECRET = process.env.JWT_SECRET;
 const BCRYPT_SALT_ROUNDS = parseInt(process.env.BCRYPT_SALT_ROUNDS);
-
 const createAdminToken = async (payload) => {
   const JWTExpireDate = "3 days";
 
@@ -50,23 +47,14 @@ const validateUsernameDuplicate = async (username) => {
 
 module.exports = {
   getAdmins: catchAsync(async (req, res) => {
-    const { limit, offset } = req.query;
 
-    const { rows, count } = await Admin.findAndCountAll({
-      where: { role: "moderator" },
-      subQuery: false,
-      limit,
-      offset,
-    });
+    const admin = await Admin.findOne()
 
     res.send({
       status: "success",
       code: 200,
       dataName: "data",
-      data: {
-        moderators: rows,
-        count,
-      },
+      admin
     });
   }),
 
@@ -115,36 +103,27 @@ module.exports = {
     });
   }),
 
-  editModerator: catchAsync(async (req, res) => {
-    const { id } = req.params;
+  editModerator: catchAsync(async (req, res,next) => {
+    const { username,newPassword,newPasswordConfirm,password} = req.body;
+    console.log(108,req.body)    
+    const admin=await Admin.findOne();
+    if (password && newPassword) {
+      if (!(await bcrypt.compare(password, admin.password))) {
+          return next(new AppError('Your current password is not correct', 401));
+      }
 
-    const moderator = await Admin.findOne({ where: { id } });
+      if (newPassword !== newPasswordConfirm) {
+          return next(new AppError('New passwords are not the same', 400));
+      }
 
-    if (!moderator) {
-      throw new Error(`Couldn't find moderator with id ${id}`);
-    }
-
-    const { username, permissions } = req.body;
-
-    const usernameIsDuplicated = await validateUsernameDuplicate(username);
-    if (usernameIsDuplicated && username !== moderator.username) {
-      throw new Error(
-        "Username is existing in database already. Try another username"
-      );
-    }
-
-    await Admin.update(
-      {
-        username,
-        permissions,
-      },
-      { where: { id } }
-    );
-
-    res.send( {
+      await admin.update({
+          password: await bcrypt.hash(newPassword, 12),
+      });
+  }
+    await admin.update({username})
+    return res.send( {
       status: "success",
       code: 200,
-      message: "Moderator updated successfully",
     });
   }),
 
@@ -160,8 +139,7 @@ module.exports = {
     });
 
     if (!admin) {
-      console.log(170)
-      return res.send({
+      return res.status(401).send({
         code: 401,
         message: "Username or password is invalid",
       });

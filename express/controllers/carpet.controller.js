@@ -1,4 +1,4 @@
-const { Sequelize, Op, col } = require("sequelize");
+const { Sequelize, Op, col, where } = require("sequelize");
 const {v4}=require("uuid")
 const sharp=require("sharp")
 const { models } = require("../../sequelize");
@@ -41,6 +41,7 @@ const returnCarpetById = async (id, res) => {
     where: {
       id,
     },
+    order:[["sizes","createdAt","DESC"]]
   });
 
   if (!carpet) {
@@ -144,7 +145,7 @@ const returnSortOptions = (sort) => {
   return sortOptions;
 };
 
-const returnWhereOptions = (materials, keyword) => {
+const returnWhereOptions = (materials, keyword,sale) => {
   let whereOptions = {};
 
   if (materials.length || keyword) {
@@ -159,22 +160,10 @@ const returnWhereOptions = (materials, keyword) => {
     whereOptions.where.name = {};
     whereOptions.where.name[Op.iLike] = `%${keyword}%`;
   }
-
-  return whereOptions;
-};
-
-const parseCarpetContents = async (carpet) => {
-  for (const color of carpet.colors) {
-    // color.name = await JSON.parse(color.name);
+  if(sale&sale!="undefined"){
+    whereOptions.where.isDiscount=true
   }
-  carpet.material = await JSON.parse(carpet.material);
-
-  carpet.content = await JSON.parse(carpet.content);
-
-  carpet.description = await JSON.parse(carpet.description);
-  carpet.preview = carpet.images[0].url;
-
-  return carpet;
+  return whereOptions;
 };
 
 module.exports = {
@@ -184,12 +173,14 @@ module.exports = {
     const { filterOptions, materials } = await returnFilterOptions(filters);
 
     const sortOptions = await returnSortOptions(sort);
-
-    const whereOptions = await returnWhereOptions(materials, keyword);
-
+    sortOptions.order.push(["sizes","createdAt","DESC"])
+    console.log(sortOptions)
+    const whereOptions = await returnWhereOptions(materials, keyword,sale);
+    if(Number(limit)>=10) limit=Number(limit)+1
+    else limit=Number(limit)
     const limits = {
       offset: offset ? parseInt(offset) : 0,
-      limit: limit ? parseInt(limit) : 16,
+      limit: limit  || 11
     };
 
     const options = {
@@ -200,7 +191,8 @@ module.exports = {
       subQuery: false,
     };
     let rows = await Carpet.findAll(options);
-    let count = await Carpet.count();
+    let count = await Carpet.count({where:whereOptions});
+    console.log(rows.length,count)
     if (sale) {
       rows = rows.filter((row) => {
         for (const size of row.sizes) {
@@ -275,7 +267,7 @@ module.exports = {
         colorId: colors[i].id,
       });
     }
-    console.log(sizes[0])
+    let discount=false
     for (let i = 0; i < sizesFromDatabase.length; i++) {
       await CarpetSize.create({
         carpetId: newCarpet.id,
@@ -284,15 +276,13 @@ module.exports = {
         inStock: sizes[i].instock,
         discount: sizes[i].discount,
       });
+      if(sizes[i].discount!=0) discount=true
     }
-    const carpet = await Carpet.findOne({
-      where: { id: newCarpet.id },
-    });
-
+    if(discount) await newCarpet.update({isDiscount:true})
     return res.send({
       status: "success",
       code: 200,
-      data: carpet,
+      data: newCarpet,
       message: "Successfully created a carpet",
     });
   }),
@@ -304,7 +294,7 @@ module.exports = {
     let carpet = await returnCarpetById(id, res);
 
     // carpet = await parseCarpetContents(carpet);
-    // carpet.sizes = returnSizesWithDiscountPrices(carpet.sizes);
+    carpet.sizes = returnSizesWithDiscountPrices(carpet.sizes);
     return res.send({
       code: 200,
       status: "success",
@@ -396,15 +386,19 @@ module.exports = {
       });
     }
 
+    let discount=false
     for (let i = 0; i < sizesFromDatabase.length; i++) {
       await CarpetSize.create({
-        carpetId: id,
+        carpetId: carpet.id,
         sizeId: sizesFromDatabase[i].id,
         price: sizes[i].price,
-        inStock: sizes[i].inStock || 0,
-        discount: sizes[i].discount || 0,
+        inStock: sizes[i].instock,
+        discount: sizes[i].discount,
       });
+      if(sizes[i].discount!=0) discount=true
     }
+    if(discount) await carpet.update({isDiscount:true})
+    else await carpet.update({isDiscount:false})
 
     return res.send({
       status: "success",

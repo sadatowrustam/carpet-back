@@ -7,10 +7,12 @@ const {
   createRequest,
   getRequests,
   deleteRequest,
+  getOneRequest,
 } = require("../controllers/request.controller");
 
 router.post("/", createRequest);
 router.get("/", adminMiddleware, getRequests);
+router.get("/:id",adminMiddleware,getOneRequest)
 router.delete("/:id", adminMiddleware, deleteRequest);
 
 module.exports = router;
