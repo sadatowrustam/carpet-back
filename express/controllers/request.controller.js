@@ -1,4 +1,5 @@
 const { models } = require("../../sequelize");
+const AppError = require("../../utils/appError");
 const { Request } = models;
 
 const catchAsync = require("../../utils/catchAsync");
@@ -59,13 +60,13 @@ module.exports = {
       },
     });
   }),
-  getOneRequest: catchAsync(async (req, res) => {
+  getOneRequest: catchAsync(async (req, res,next) => {
     const { id } = req.params;
 
     const request = await Request.findOne({ where: { id } });
 
     if (!request) {
-      throw new Error(`Couldn't find request with id ${id}`);
+      return next(new AppError("Request not found",404))
     }
 
     return res.send({

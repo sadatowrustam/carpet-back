@@ -129,7 +129,7 @@ module.exports = {
 
   login: catchAsync(async (req, res) => {
     const { username, password } = req.body;
-
+    console.log(req.body)
     if (!username || !password) {
       throw new Error("Username is required");
     }
@@ -137,7 +137,6 @@ module.exports = {
       where: { username },
       include: "adminTokens",
     });
-
     if (!admin) {
       return res.status(401).send({
         code: 401,

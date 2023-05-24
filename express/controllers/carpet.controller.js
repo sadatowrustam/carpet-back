@@ -10,7 +10,6 @@ const {
   Color,
   Image,
   Currency,
-  CurrencyExchangeRate,
 } = models;
 
 const catchAsync = require("../../utils/catchAsync");
@@ -65,19 +64,16 @@ const returnFilterOptions = (filters) => {
   let colors = [],
     materials = [],
     sizes = [],
-    widths = [],
-    heights = [],
     filterOptions = {};
-
   if (filters) {
-    colors = filters.colors || [];
-    materials = filters.materials || [];
-    sizes = filters.sizes || [];
-
-    if (sizes.length) {
-      widths = sizes.map((size) => size.width);
-      heights = sizes.map((size) => size.height);
+    if(filters.colors!="undefined" && filters.colors!=undefined) colors = filters.colors.split(",");
+    if(filters.materials!="undefined" && filters.materials!=undefined) {
+      let not_materials=filters.materials.split(",")
+      for(let i=0; i<not_materials.length;i++)
+        materials.push("%"+not_materials[i]+"%") 
+      
     }
+    if(filters.sizes!="undefined" && filters.sizes!=undefined) sizes = filters.sizes.split(",");
 
     const includeOptions = [];
     colors.length
@@ -85,7 +81,7 @@ const returnFilterOptions = (filters) => {
           model: Color,
           as: "colors",
           duplicating:false,
-          where: { name: colors },
+          where: { id:colors },
         })
       : null;
 
@@ -94,21 +90,21 @@ const returnFilterOptions = (filters) => {
           model: Size,
           as: "sizes",
           duplicating: false,
-          where: { width: widths, height: heights },
+          where: { id:sizes},
         })
       : null;
-
-    includeOptions.push({
-      model: Size,
-      as: "sizes",
-      duplicating: false,
-      through: {
-        as: "carpetSize",
-        duplicating: false,
-        attributes: ["inStock", "price"],
-      },
-    });
-
+    // console.log(91,includeOptions)
+    // includeOptions.push({
+    //   model: Size,
+    //   as: "sizes",
+    //   duplicating: false,
+    //   through: {
+    //     as: "carpetSize",
+    //     duplicating: false,
+    //     attributes: ["inStock", "price"],
+    //   },
+    // });
+    console.log(102,includeOptions)
     filterOptions = {
       include: includeOptions,
     };
@@ -145,15 +141,14 @@ const returnSortOptions = (sort) => {
   return sortOptions;
 };
 
-const returnWhereOptions = (materials, keyword,sale) => {
+const returnWhereOptions = (materials, keyword,sale,min_price,max_price) => {
   let whereOptions = {};
+  whereOptions.where={}
 
-  if (materials.length || keyword) {
-    whereOptions.where = {};
-  }
+  if (materials!="undefined" && materials.length>0)  {
+   whereOptions.where.material ={[Op.like]:{[Op.any]:materials}} ;
+    // whereOptions.where.material ={[Op.like]:materials} ;
 
-  if (materials.length) {
-    whereOptions.where.material = materials;
   }
 
   if (keyword) {
@@ -168,21 +163,17 @@ const returnWhereOptions = (materials, keyword,sale) => {
 
 module.exports = {
   getAllCarpets: catchAsync(async (req, res) => {
-    let { filters, sort, offset, limit, keyword, sale } = req.query;
-
-    const { filterOptions, materials } = await returnFilterOptions(filters);
-
-    const sortOptions = await returnSortOptions(sort);
+    let {  sort, offset, limit, keyword, sale,min,max } = req.query;
+    const { filterOptions, materials }=returnFilterOptions(req.query);
+    const sortOptions = returnSortOptions(sort);
     sortOptions.order.push(["sizes","createdAt","DESC"])
-    console.log(sortOptions)
-    const whereOptions = await returnWhereOptions(materials, keyword,sale);
+    const whereOptions = returnWhereOptions(materials, keyword,sale,min,max);
     if(Number(limit)>=10) limit=Number(limit)+1
     else limit=Number(limit)
     const limits = {
       offset: offset ? parseInt(offset) : 0,
       limit: limit  || 11
     };
-
     const options = {
       ...whereOptions,
       ...sortOptions,
@@ -190,19 +181,21 @@ module.exports = {
       ...limits,
       subQuery: false,
     };
+    console.log(options)
     let rows = await Carpet.findAll(options);
-    let count = await Carpet.count({where:whereOptions});
-    console.log(rows.length,count)
-    if (sale) {
-      rows = rows.filter((row) => {
-        for (const size of row.sizes) {
-          if (size.carpetSize.discount > 0) {
-            return row;
-          }
-        }
-      });
-    }
-
+    let count = await Carpet.count(whereOptions);
+    // if (sale) {
+    //   rows = rows.filter((row) => {
+    //     for (const size of row.sizes) {
+    //       console.log(size.carpetSize)
+    //       if (size.carpetSize.discount > 0) {
+    //         return row;
+    //       }
+    //     }
+    //   });
+    // }
+    
+    console.log(187,rows.length)
     rows.map((carpet) => {
       carpet.sizes = returnSizesWithDiscountPrices(carpet.sizes);
     });
@@ -228,9 +221,9 @@ module.exports = {
       content,
     } = req.body;
     let sizeIds = [];
+    let carpetPrices=[]
     if (!sizes) throw new Error("Please provide size(s) of carpet");
     for (let i = 0; i < sizes.length; i++) {
-      // sizes[i] = JSON.parse(sizes[i]);
       sizeIds.push(sizes[i].id);
     }
     let colorIds=[]
@@ -240,8 +233,9 @@ module.exports = {
     description=JSON.stringify(description)
     content=JSON.stringify(content)
     name = JSON.stringify(name)
-    material=JSON.stringify(material)
 
+    material=JSON.stringify(material.map((material)=>{return(material.name)}))
+    console.log(material)
     const defaultCurrency = await Currency.findOne({ where: { code: "USD" } });
     const newCarpet = await Carpet.create({
       name,
@@ -269,6 +263,7 @@ module.exports = {
     }
     let discount=false
     for (let i = 0; i < sizesFromDatabase.length; i++) {
+      carpetPrices.push(sizes[i].price)
       await CarpetSize.create({
         carpetId: newCarpet.id,
         sizeId: sizesFromDatabase[i].id,
@@ -278,7 +273,7 @@ module.exports = {
       });
       if(sizes[i].discount!=0) discount=true
     }
-    if(discount) await newCarpet.update({isDiscount:true})
+    await newCarpet.update({isDiscount:discount,prices:carpetPrices})
     return res.send({
       status: "success",
       code: 200,

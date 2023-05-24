@@ -3,7 +3,6 @@ require("dotenv").config({
 });
 
 const Sequelize = require("sequelize");
-console.log("men seqyeku",__dirname)
 const DATABASE_NAME = process.env.DATABASE_NAME || "carpet";
 const DATABASE_HOST = process.env.DATASASE_HOST || "localhost";
 const DATABASE_USER = process.env.DATABASE_USER || "postgres";

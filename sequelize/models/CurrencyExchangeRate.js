@@ -15,7 +15,7 @@ module.exports = (sequelize) => {
         allowNull: false,
       },
       exchangeRate: {
-        type: DataTypes.DECIMAL(20, 10),
+        type: DataTypes.DECIMAL(10,2),
         allowNull: false,
       },
     },

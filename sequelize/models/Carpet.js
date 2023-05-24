@@ -41,7 +41,10 @@ module.exports = (sequelize) => {
       isDiscount:{
         type:DataTypes.BOOLEAN,
         defaultValue:false
-      }
+      },
+      prices:{
+        type:DataTypes.ARRAY(DataTypes.INTEGER)
+      },
     },
     {
       tableName: "Carpets",

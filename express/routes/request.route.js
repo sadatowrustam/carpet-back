@@ -13,6 +13,6 @@ const {
 router.post("/", createRequest);
 router.get("/", adminMiddleware, getRequests);
 router.get("/:id",adminMiddleware,getOneRequest)
-router.delete("/:id", adminMiddleware, deleteRequest);
+router.post("/delete/:id", adminMiddleware, deleteRequest);
 
 module.exports = router;
