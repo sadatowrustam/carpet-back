@@ -14,6 +14,16 @@ module.exports = (sequelize) => {
         type: DataTypes.INTEGER,
         allowNull: false,
       },
+      price:{
+        type:DataTypes.INTEGER,
+        get(){
+          const carpetSize=this.getDataValue("carpetSize")
+          if(carpetSize){
+            if(carpetSize.discount>0) {return (carpetSize.price-(carpetSize.price*carpetSize.discount/100))}
+            else { return carpetSize.price}
+          }
+        }
+      }
     },
     {
       tableName: "Sizes",

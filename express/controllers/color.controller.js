@@ -57,7 +57,7 @@ module.exports = {
       throw new Error(`Color with id ${id} doesn't exist`);
     }
     const { name, hex } = req.body;
-    await Color.update({ name, hex }, { where: { id } });
+    await Color.update({ name:JSON.stringify(name), hex }, { where: { id } });
     res.send({
       status: "success",
       code: 200,

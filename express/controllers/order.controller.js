@@ -1,4 +1,5 @@
 const { models } = require("../../sequelize");
+const AppError = require("../../utils/appError");
 const { Order, CarpetOrder, Carpet } = models;
 
 const catchAsync = require("../../utils/catchAsync");
@@ -59,6 +60,7 @@ module.exports = {
       limit,
       offset,
       subQuery: false,
+      order:[["createdAt","DESC"]]
     });
 
     res.send({
@@ -74,14 +76,13 @@ module.exports = {
 
   getOrderById: catchAsync(async (req, res) => {
     const { id } = req.params;
-
     const order = await Order.findOne({ where: { id } });
-
+    
     if (!order) {
       throw new Error(`Couldn't find order with id ${id}`);
     }
 
-    res.send({
+    return res.send({
       status: "success",
       code: 200,
       dataName: "order",
@@ -114,18 +115,18 @@ module.exports = {
     });
   }),
 
-  deleteOrder: catchAsync(async (req, res) => {
+  deleteOrder: catchAsync(async (req, res,next) => {
     const { id } = req.params;
-
+    console.log(121)
     const order = await Order.findOne({ where: { id } });
 
     if (!order) {
-      throw new Error(`Couldn't find order with id ${id}`);
+      return next(new AppError("ORder not found",404));
     }
 
-    await Order.destroy({ where: { id } });
+    await order.destroy({});
 
-    res.send({
+    return res.send({
       status: "success",
       code: 200,
       message: `Successfully deleted order with id ${id}`,

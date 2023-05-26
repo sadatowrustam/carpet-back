@@ -42,8 +42,8 @@ module.exports = (sequelize) => {
         type:DataTypes.BOOLEAN,
         defaultValue:false
       },
-      prices:{
-        type:DataTypes.ARRAY(DataTypes.INTEGER)
+      price:{
+        type:DataTypes.INTEGER
       },
     },
     {

@@ -45,8 +45,8 @@ const addDefaultSuperAdmin = async () => {
 };
 
 (async () => {
-  await addDefaultCurrency();
-  // await addDefaultSuperAdmin();
+  // await addDefaultCurrency();
+  await addDefaultSuperAdmin();
   logger.log({
     level: "info",
     message: "Created default currency and admin",

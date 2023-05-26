@@ -10,8 +10,6 @@ module.exports = {
   createSize: catchAsync(async (req, res,next) => {
     const { width, height } = req.body;
 
-    await validateSize(width, height,next);
-
     const size = await Size.create({ width, height });
 
     res.send({

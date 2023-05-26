@@ -15,6 +15,6 @@ router.post("/",  createOrder);
 router.get("/", adminMiddleware, getOrders);
 router.get("/:id", adminMiddleware, getOrderById);
 router.patch("/:id", adminMiddleware, changeOrderById);
-router.delete("/:id", adminMiddleware, deleteOrder);
+router.post("/delete/:id", adminMiddleware, deleteOrder);
 
 module.exports = router;

@@ -7,8 +7,6 @@ module.exports = {
   adminMiddleware: catchAsync(async (req, res, next) => {
     const authHeader = req.headers["authorization"];
     const token = authHeader && authHeader.split(" ")[1];
-
-    console.log(11,!token)
     if (!token) {
       return res.send({
         code: 401,
@@ -16,17 +14,12 @@ module.exports = {
       });
     }
     const admin = await jwt.verify(token, "rustam");
-
+    console.log(admin)
     if (admin) {
-      const adminInDatabase = await Admin.findOne({
-        where: {
-          username: admin.username,
-        },
-      });
+      const adminInDatabase = await Admin.findOne({});
 
       if (!adminInDatabase) {
-        console.log(30)
-        return res.send({
+        return res.status(401).send({
           status: "Unauthorized",
           code: 401,
           message: "This account has been deleted",
@@ -36,7 +29,7 @@ module.exports = {
       req.admin = { username: admin.username };
       next();
     } else
-      res.send({
+      return res.status(401).send({
         code: 401,
         message: "Token has expired, login again",
       });

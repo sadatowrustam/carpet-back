@@ -116,25 +116,19 @@ const returnFilterOptions = (filters) => {
 const returnSortOptions = (sort) => {
   let sortOptions = {};
 
-  if (sort) {
-    if (typeof sort !== "string") {
-      throw new Error("Invalid  option in query");
-    }
-
-    sort = returnSortString(sort);
-
-    if (sort[0] === "price") {
+  if (sort!="undefined") {
+    if (sort ==1) {
       sortOptions = {
-        order: Sequelize.literal(`"sizes->carpetSize"."price" ${sort[1]}`),
+        order:[[ Sequelize.literal(`"sizes->carpetSize"."price" ASC`)]],
       };
     } else {
       sortOptions = {
-        order: [[sort[0], sort[1]]],
+        order: [[Sequelize.literal(`"sizes->carpetSize"."price" DESC`)]],
       };
     }
   } else {
     sortOptions = {
-      order: [["createdAt", "desc"]],
+      order: [["createdAt", "DESC"]],
     };
   }
 
@@ -144,21 +138,22 @@ const returnSortOptions = (sort) => {
 const returnWhereOptions = (materials, keyword,sale,min_price,max_price) => {
   let whereOptions = {};
   whereOptions.where={}
-
   if (materials!="undefined" && materials.length>0)  {
-   whereOptions.where.material ={[Op.like]:{[Op.any]:materials}} ;
+    whereOptions.where.material={[Op.like]:{[Op.any]:materials}}
     // whereOptions.where.material ={[Op.like]:materials} ;
-
+    
   }
-
-  if (keyword) {
+  if (keyword&&keyword!="undefined") {
     whereOptions.where.name = {};
-    whereOptions.where.name[Op.iLike] = `%${keyword}%`;
+    whereOptions.where.name={[Op.like] :`%${keyword}%`};
   }
-  if(sale&sale!="undefined"){
+  if(sale&&sale!="false"){
     whereOptions.where.isDiscount=true
   }
-  return whereOptions;
+  if(max_price && max_price!="undefined"&&min_price!="undefined"){
+    whereOptions.where.price={[Op.between]:[Number(min_price),Number(max_price)]}
+  }
+ return whereOptions;
 };
 
 module.exports = {
@@ -172,8 +167,10 @@ module.exports = {
     else limit=Number(limit)
     const limits = {
       offset: offset ? parseInt(offset) : 0,
-      limit: limit  || 11
+      limit: limit
     };
+    console.log(limits)
+    console.log(sortOptions)
     const options = {
       ...whereOptions,
       ...sortOptions,
@@ -181,7 +178,6 @@ module.exports = {
       ...limits,
       subQuery: false,
     };
-    console.log(options)
     let rows = await Carpet.findAll(options);
     let count = await Carpet.count(whereOptions);
     // if (sale) {
@@ -194,8 +190,6 @@ module.exports = {
     //     }
     //   });
     // }
-    
-    console.log(187,rows.length)
     rows.map((carpet) => {
       carpet.sizes = returnSizesWithDiscountPrices(carpet.sizes);
     });
@@ -233,8 +227,7 @@ module.exports = {
     description=JSON.stringify(description)
     content=JSON.stringify(content)
     name = JSON.stringify(name)
-
-    material=JSON.stringify(material.map((material)=>{return(material.name)}))
+    material=JSON.stringify(material.map((material)=>{return({name:material.name})}))
     console.log(material)
     const defaultCurrency = await Currency.findOne({ where: { code: "USD" } });
     const newCarpet = await Carpet.create({
@@ -263,7 +256,6 @@ module.exports = {
     }
     let discount=false
     for (let i = 0; i < sizesFromDatabase.length; i++) {
-      carpetPrices.push(sizes[i].price)
       await CarpetSize.create({
         carpetId: newCarpet.id,
         sizeId: sizesFromDatabase[i].id,
@@ -273,7 +265,7 @@ module.exports = {
       });
       if(sizes[i].discount!=0) discount=true
     }
-    await newCarpet.update({isDiscount:discount,prices:carpetPrices})
+    await newCarpet.update({isDiscount:discount,price:sizes[0].price})
     return res.send({
       status: "success",
       code: 200,
@@ -286,8 +278,20 @@ module.exports = {
 
     const id = req.params.id;
 
-    let carpet = await returnCarpetById(id, res);
-
+    const carpet = await Carpet.findOne({
+      where: {
+        id,
+      },
+      order:[["sizes","createdAt","DESC"]]
+    });
+  
+    if (!carpet) {
+      return res.status(4040).send({
+        code: 404,
+        status: "Not found",
+        message: `Couldn't find carpet with id ${id}`,
+      });
+    }
     // carpet = await parseCarpetContents(carpet);
     carpet.sizes = returnSizesWithDiscountPrices(carpet.sizes);
     return res.send({
@@ -335,7 +339,6 @@ module.exports = {
       content,
       colors
     } = req.body;
-    console.log(345,sizes)
     description=JSON.stringify(description)
     content=JSON.stringify(content)
     name = JSON.stringify(name)
@@ -382,6 +385,7 @@ module.exports = {
     }
 
     let discount=false
+    
     for (let i = 0; i < sizesFromDatabase.length; i++) {
       await CarpetSize.create({
         carpetId: carpet.id,
@@ -392,8 +396,7 @@ module.exports = {
       });
       if(sizes[i].discount!=0) discount=true
     }
-    if(discount) await carpet.update({isDiscount:true})
-    else await carpet.update({isDiscount:false})
+    await carpet.update({isDiscount:discount,price:sizes[0].price})
 
     return res.send({
       status: "success",
@@ -404,9 +407,6 @@ module.exports = {
 
   deleteCarpetById: catchAsync(async (req, res) => {
     const id = req.params.id;
-    console.log("fdew")
-    await returnCarpetById(id, res);
-
     await Carpet.destroy({
       where: {
         id,
