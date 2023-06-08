@@ -227,8 +227,7 @@ module.exports = {
     description=JSON.stringify(description)
     content=JSON.stringify(content)
     name = JSON.stringify(name)
-    material=JSON.stringify(material.map((material)=>{return({name:material.name})}))
-    console.log(material)
+    material=JSON.stringify({name:material.name})
     const defaultCurrency = await Currency.findOne({ where: { code: "USD" } });
     const newCarpet = await Carpet.create({
       name,

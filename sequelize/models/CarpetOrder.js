@@ -14,8 +14,8 @@ module.exports = (sequelize) => {
         type: DataTypes.UUID,
         allowNull: false,
       },
-      sizes: {
-        type: DataTypes.ARRAY(DataTypes.UUID),
+      sizeId:{
+        type:DataTypes.UUID
       },
       count: {
         type: DataTypes.INTEGER,

@@ -21,7 +21,6 @@ module.exports = {
       paymentType,
       deliveryType,
     } = req.body;
-
     const newOrder = await Order.create({
       firstName,
       lastName,
@@ -34,12 +33,12 @@ module.exports = {
       paymentType,
       deliveryType,
     });
-
     for (let i = 0; i < carpets.length; i++) {
       await CarpetOrder.create({
         orderId: newOrder.id,
         carpetId: carpets[i].id,
         count: carpets[i].count,
+        sizeId:carpets[i].sizes[carpets[i].sizeActive].id
       });
     }
 

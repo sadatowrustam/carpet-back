@@ -10,6 +10,7 @@ module.exports = ({ models }) => {
     Video,
     GalleryImage,
     Banner,
+    CarpetOrder
   } = models;
 
   Carpet.addScope("defaultScope", {
@@ -44,11 +45,17 @@ module.exports = ({ models }) => {
       {
         model: Carpet,
         as: "carpets",
-        through: { as: "carpetOrder", attributes: ["count"] },
+        through: { 
+          as: "carpetOrder"
       },
+      },
+      {
+        model:CarpetOrder,
+        as:"carpetOrder",
+
+      }
     ],
   });
-
   BlogVideo.addScope("defaultScope", {
     include: [{ model: Video, as: "blogVideo", attributes: ["id", "url"] }],
   });

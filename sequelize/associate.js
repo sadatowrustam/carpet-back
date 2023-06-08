@@ -80,14 +80,18 @@ module.exports = ({ models }) => {
     as: "fromCurrency",
     foreignKey: "fromCurrencyId",
   });
-
   CurrencyExchangeRate.belongsTo(Currency, {
     as: "toCurrency",
     foreignKey: "toCurrencyId",
   });
-
-  //
-
+  Currency.hasMany(CurrencyExchangeRate, {
+    as:"toCurrency",
+    foreignKey:"toCurrencyId",
+  })
+  Currency.hasMany(CurrencyExchangeRate, {
+    as:"fromCurrency",
+    foreignKey:"fromCurrencyId",
+  })
   Currency.hasOne(Carpet, {
     foreignKey: "currencyId",
     as: "currency",
@@ -111,9 +115,9 @@ module.exports = ({ models }) => {
     through: CarpetOrder,
     as: "carpets",
   });
-
   //
-
+  CarpetOrder.belongsTo(Order,{foreignKey:"orderId",as:"order"});
+  Order.hasMany(CarpetOrder,{foreignKey:"orderId",as:"carpetOrder"})
   Banner.hasOne(Image, {
     foreignKey: "bannerId",
     as: "image",
